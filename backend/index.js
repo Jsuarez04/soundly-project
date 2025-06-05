@@ -18,7 +18,8 @@ app.get('/api/songs', async (req, res) => {
 
 app.get('/api/users', async(req,res) => {
     try{
-        const result = await client.exectute('SELECT * from musica.users')
+        const result = await client.execute('SELECT * from musica.users')
+        res.json(result.rows); // devuelve array de objetos
     }
     catch (error){
         console.error('Error al obtener usuarios:', error);

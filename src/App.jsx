@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 function App() {
   const [songs, setSongs] = useState([]);
+  const [users, setUsers] = useState([]);
 
 useEffect(() => {
   fetch('http://localhost:3001/api/songs')
@@ -15,6 +16,20 @@ useEffect(() => {
     })
     .catch(err => console.error('Error al obtener canciones:', err));
 }, []);
+
+useEffect(()=> {
+  fetch('http://localhost:3001/api/users')
+  .then (res => res.json())
+  .then(data =>{
+    if(Array.isArray(data)){
+      setUsers(data);
+      }else {
+        console.error('Respuesta no es un array:', data);
+      }
+    })
+      .catch(err => console.error('Error al obtener usuarios:', err)); 
+  }, []);
+
   return (
     <div>
       <h1>🎵 Lista de Canciones</h1>
@@ -22,6 +37,14 @@ useEffect(() => {
         {songs.map(song => (
           <li key={song.id}>
             <strong>{song.title}</strong> - {song.author} - {song.genre}- {song.year}
+          </li>
+        ))}
+      </ul>
+      <h1>Lista de usuarios</h1>
+      <ul>
+        {users.map(user => (
+          <li key={user.user_id}>
+            <strong>{user.username}</strong> - {user.city} 
           </li>
         ))}
       </ul>
