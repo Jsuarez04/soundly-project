@@ -58,18 +58,50 @@ USE musica;
 
 -- Aquí van los CREATE TABLE correspondientes a cada tabla, por ejemplo:
 
-CREATE TABLE users (
-  username text PRIMARY KEY,
-  name text,
-  city text
+CREATE TABLE musica.users (
+    username text PRIMARY KEY,
+    city text,
+    name text,
+    password text,
+    user_id int
 );
 
-CREATE TABLE songs (
-  id uuid PRIMARY KEY,
-  title text,
-  artist text,
-  genre text
+CREATE TABLE musica.songs (
+    id uuid PRIMARY KEY,
+    author text,
+    duration int,
+    genre text,
+    title text,
+    year int
 );
+
+CREATE TABLE musica.listens (
+    username text,
+    song_id uuid,
+    listen_date date,
+    PRIMARY KEY (username, song_id, listen_date)
+) WITH CLUSTERING ORDER BY (song_id ASC, listen_date DESC);
+
+CREATE TABLE musica.canciones_por_ciudad (
+    ciudad text,
+    cancion_id uuid,
+    conteo counter,
+    PRIMARY KEY (ciudad, cancion_id)
+) WITH CLUSTERING ORDER BY (cancion_id ASC);
+
+CREATE TABLE musica.canciones_mas_escuchadas_por_genero (
+    genero text,
+    cancion_id uuid,
+    conteo counter,
+    PRIMARY KEY (genero, cancion_id)
+) WITH CLUSTERING ORDER BY (cancion_id ASC);
+
+CREATE TABLE musica.escuchas_por_genero_y_mes (
+    genero text,
+    mes text,
+    total_escuchas counter,
+    PRIMARY KEY (genero, mes)
+) WITH CLUSTERING ORDER BY (mes ASC);
 
 -- Repite para el resto de tablas...
 📌 Puedes copiar todos los CREATE TABLE desde este mismo repositorio o pedirlos en un script separado.
