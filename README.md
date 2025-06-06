@@ -35,23 +35,22 @@ Este repositorio contiene los archivos y scripts necesarios para levantar una ba
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/tu_usuario/nombre_repositorio.git
-cd nombre_repositorio
+
+git clone https://github.com/Jsuarez04/soundly-project.git
+cd soundly-project
 2. Levantar Cassandra con Docker
-bash
-docker run --name cassandra -d -p 9042:9042 cassandra:latest
+
+docker run --name soundly -d -p 9042:9042 cassandra:latest
 Espera unos segundos a que el contenedor inicie completamente. Puedes verificar con:
 
-bash
-docker logs -f cassandra
+docker logs -f soundly
 3. Crear el keyspace y las tablas
 Abre CQLSH:
 
-bash
-docker exec -it cassandra cqlsh
+
+docker exec -it soundly cqlsh
 Dentro de cqlsh, ejecuta lo siguiente:
 
-sql
 CREATE KEYSPACE musica WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 
 USE musica;
@@ -107,29 +106,32 @@ CREATE TABLE musica.escuchas_por_genero_y_mes (
 📌 Puedes copiar todos los CREATE TABLE desde este mismo repositorio o pedirlos en un script separado.
 
 4. Copiar los archivos CSV al contenedor
-bash
+
 docker cp listens.csv soundly:/tmp/listens.csv
 docker cp songs.csv soundly:/tmp/songs.csv
 docker cp users.csv soundly:/tmp/users.csv
 docker cp canciones_mas_escuchadas_por_genero.csv soundly:/tmp/canciones_mas_escuchadas_por_genero.csv
 docker cp canciones_por_ciudad.csv soundly:/tmp/canciones_por_ciudad.csv
 docker cp escuchas_por_genero_y_mes.csv soundly:/tmp/escuchas_por_genero_y_mes.csv
+
 5. Importar los datos
-bash
+
 docker exec -it soundly cqlsh -e "COPY musica.listens FROM '/tmp/listens.csv' WITH HEADER = TRUE;"
 docker exec -it soundly cqlsh -e "COPY musica.songs FROM '/tmp/songs.csv' WITH HEADER = TRUE;"
 docker exec -it soundly cqlsh -e "COPY musica.users FROM '/tmp/users.csv' WITH HEADER = TRUE;"
 docker exec -it soundly cqlsh -e "COPY musica.canciones_mas_escuchadas_por_genero FROM '/tmp/canciones_mas_escuchadas_por_genero.csv' WITH HEADER = TRUE;"
 docker exec -it soundly cqlsh -e "COPY musica.canciones_por_ciudad FROM '/tmp/canciones_por_ciudad.csv' WITH HEADER = TRUE;"
 docker exec -it soundly cqlsh -e "COPY musica.escuchas_por_genero_y_mes FROM '/tmp/escuchas_por_genero_y_mes.csv' WITH HEADER = TRUE;"
-✅ Verificar que los datos se hayan cargado
-bash
-docker exec -it cassandra cqlsh
+
+✅ Verificar que los datos se hayan cargado:
+
+docker exec -it soundly cqlsh
 USE musica;
 
 SELECT * FROM listens LIMIT 5;
 SELECT * FROM users LIMIT 5;
 -- Y así con las demás tablas...
+
 🧠 Notas
 Asegúrate de tener Docker instalado.
 
