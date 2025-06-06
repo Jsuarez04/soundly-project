@@ -1,6 +1,5 @@
 
-
-const cassandra = require('cassandra-driver');
+import cassandra from  'cassandra-driver';
 
 const client = new cassandra.Client({
   contactPoints: ['localhost'], // o IP de tu servidor
@@ -17,4 +16,4 @@ async function conectarCassandra() {
   }
 }
 
-module.exports = { client, conectarCassandra };
+export { client, conectarCassandra };
