@@ -5,6 +5,7 @@ import { generateListen } from './generate_listen.js';
 import { chargeListens } from './chargeListens.js';
 
 
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -12,6 +13,18 @@ app.use(express.json());
 app.get('/api/songs', async (req, res) => {
   try {
     const result = await client.execute('SELECT * FROM musica.songs');
+    res.json(result.rows); // devuelve array de objetos
+  } catch (error) {
+    console.error('Error al obtener canciones:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+app.get('/api/GenreYear/:genre/:year', async (req, res) => {
+  try {
+    const result = await client.execute('SELECT (title,author,genre,year) FROM musica.songs WHERE genre = ? AND year = ?', 
+      [req.params.genre, req.params.year],
+    { prepare: true });
     res.json(result.rows); // devuelve array de objetos
   } catch (error) {
     console.error('Error al obtener canciones:', error);
@@ -28,7 +41,21 @@ app.get('/api/users', async(req,res) => {
         console.error('Error al obtener usuarios:', error);
         res.status(500).json({ error: 'Error interno del servidor' });
     }
-})
+});
+
+app.post('/api/users', async(req,res) => {
+    try{
+        const result = await client.execute(
+            'INSERT INTO musica.users (username,city,name,password,user_id) VALUES (?, ?, ?, ?, ?)',
+            [req.body.username, req.body.city, req.body.name, req.body.password, req.body.user_id], 
+            { prepare: true }
+        );
+        res.json({ message: 'Usuario creado exitosamente' });
+    } catch (error) {
+        console.error('Error al crear usuarios:', error);
+        res.status(500).json({ error: 'Error interno del servidor' });
+    }
+});
 
 //importante, aca se generan las escuchas y se cargan a la BD
 const listens = await generateListen(100);
