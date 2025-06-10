@@ -20,11 +20,19 @@ app.get('/api/songs', async (req, res) => {
   }
 });
 
-app.get('/api/GenreYear/:genre/:year', async (req, res) => {
+app.get('/api/genero/mes', async (req, res) => {
   try {
-    const result = await client.execute('SELECT (title,author,genre,year) FROM musica.songs WHERE genre = ? AND year = ?', 
-      [req.params.genre, req.params.year],
-    { prepare: true });
+    const result = await client.execute('SELECT * FROM musica.escuchas_por_genero_y_mes where genero = ? AND mes = ?', [req.body.genero, req.body.mes], { prepare: true });
+    res.json(result.rows); // devuelve array de objetos
+  } catch (error) {
+    console.error('Error al obtener canciones:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+app.get('/api/ciudad', async (req, res) => {
+  try {
+    const result = await client.execute('SELECT * FROM musica.canciones_por_ciudad where ciudad = ? ', [req.body.ciudad], { prepare: true });
     res.json(result.rows); // devuelve array de objetos
   } catch (error) {
     console.error('Error al obtener canciones:', error);
