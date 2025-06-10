@@ -19,12 +19,12 @@ export async function generateListen(n) {
   for (let i = 0; i < n; i++) {
     const username = usernames[Math.floor(Math.random() * usernames.length)];
     const song = songIds[Math.floor(Math.random() * songIds.length)];
-    const randomDays = Math.floor(Math.random() * 60);
+    const randomDays = Math.floor(Math.random() * 365); // dias aleatorios en un año
     const date = new Date(base_date);
     date.setDate(date.getDate() + randomDays);
 
     listens.push({
-      username: username,                // ✅ correcto
+      username: username,               
       song_id: song,
       listen_date: date.toISOString().split('T')[0]
     });
@@ -32,3 +32,5 @@ export async function generateListen(n) {
 
   return listens;
 }
+
+

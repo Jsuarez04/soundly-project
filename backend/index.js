@@ -31,7 +31,7 @@ app.get('/api/users', async(req,res) => {
 })
 
 //importante, aca se generan las escuchas y se cargan a la BD
-const listens = await generateListen(100);
+const listens = await generateListen(1000);
 console.log('Generando escuchas:', listens);
 await chargeListens(listens);
 

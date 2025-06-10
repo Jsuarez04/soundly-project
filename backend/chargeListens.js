@@ -45,10 +45,10 @@ export async function chargeListens(listens) {
 
                 // Incrementar conteo mensual
                 await client.execute(
-                    `UPDATE escuchas_por_genero_y_mes
+                    `UPDATE cancion_por_genero_y_mes
                      SET total_escuchas = total_escuchas + 1
-                     WHERE genero = ? AND mes = ?`,
-                    [genero, mes],
+                     WHERE idCancion =? AND genero = ? AND mes = ?`,
+                    [listen.song_id, genero, mes],
                     { prepare: true }
                 );
             }
