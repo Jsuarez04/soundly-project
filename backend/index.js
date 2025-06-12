@@ -21,14 +21,50 @@ app.get('/api/songs', async (req, res) => {
 });
 
 app.get('/api/genero/mes', async (req, res) => {
+   const { genero, mes } = req.query;
+
+  if (!genero || !mes) {
+    return res.status(400).json({ error: "Debes proporcionar 'genero' y 'mes'" });
+  }
+
   try {
-    const { genero, mes } = req.query;
-    const result = await client.execute(
-      'SELECT * FROM musica.escuchas_por_genero_y_mes WHERE genero = ? AND mes = ?',
-      [genero, mes],
-      { prepare: true }
-    );
-    res.json(result.rows);
+    // 1. Obtener métricas desde cancion_por_genero_y_mes
+    const queryMetricas = 'SELECT idcancion, total_escuchas FROM musica.cancion_por_genero_y_mes WHERE genero = ? AND mes = ?';
+    const resultadoMetricas = await client.execute(queryMetricas, [genero, mes], { prepare: true });
+
+    if (resultadoMetricas.rows.length === 0) {
+      return res.status(404).json({ mensaje: `No hay canciones para el género '${genero}' y mes '${mes}'` });
+    }
+
+    // 2. Convertir y ordenar por escuchas
+    const metricasOrdenadas = resultadoMetricas.rows
+      .map(row => ({
+        idcancion: row.idcancion.toString(),
+        total_escuchas: row.total_escuchas.toNumber()
+      }))
+      .sort((a, b) => b.total_escuchas - a.total_escuchas);
+
+    // 3. Obtener detalles de canciones
+    const ids = metricasOrdenadas.map(m => m.idcancion);
+    const queryDetalles = 'SELECT id, title, author FROM musica.songs WHERE id IN ?';
+    const resultadoDetalles = await client.execute(queryDetalles, [ids], { prepare: true });
+
+    // 4. Armar mapa id -> detalle
+    const detallesMap = new Map(resultadoDetalles.rows.map(row => [row.id.toString(), row]));
+
+    // 5. Combinar resultados
+    const respuesta = metricasOrdenadas.map(m => {
+      const detalle = detallesMap.get(m.idcancion);
+      return {
+        title: detalle?.title || 'Título no encontrado',
+        author: detalle?.author || 'Autor no encontrado',
+        genero: genero,
+        mes: mes,
+        total_escuchas: m.total_escuchas
+      };
+    });
+
+    res.json(respuesta);
   } catch (error) {
     console.error('Error al obtener canciones:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
@@ -37,14 +73,48 @@ app.get('/api/genero/mes', async (req, res) => {
 
 
 app.get('/api/ciudad', async (req, res) => {
-  try {
     const { ciudad } = req.query;
-    const result = await client.execute(
-      'SELECT * FROM musica.canciones_por_ciudad WHERE ciudad = ?',
-      [ciudad],
-      { prepare: true }
-    );
-    res.json(result.rows);
+
+  if (!ciudad) {
+    return res.status(400).json({ error: "Debes proporcionar 'ciudad'" });
+  }
+
+  try {
+    // 1. Obtener métricas desde cancion_por_genero_y_mes
+    const queryMetricas = 'SELECT * FROM musica.canciones_por_ciudad WHERE ciudad = ?';
+    const resultadoMetricas = await client.execute(queryMetricas, [ciudad], { prepare: true });
+
+    if (resultadoMetricas.rows.length === 0) {
+      return res.status(404).json({ mensaje: `No hay canciones para la ciudad '${ciudad}'` });
+    }
+
+    // 2. Convertir y ordenar por escuchas
+    const metricasOrdenadas = resultadoMetricas.rows
+      .map(row => ({
+        cancion_id: row.cancion_id.toString(),
+        conteo: row.conteo.toNumber()
+      }))
+      .sort((a, b) => b.conteo - a.conteo);
+
+    // 3. Obtener detalles de canciones
+    const ids = metricasOrdenadas.map(m => m.cancion_id);
+    const queryDetalles = 'SELECT id, title, author FROM musica.songs WHERE id IN ?';
+    const resultadoDetalles = await client.execute(queryDetalles, [ids], { prepare: true });
+
+    // 4. Armar mapa id -> detalle
+    const detallesMap = new Map(resultadoDetalles.rows.map(row => [row.id.toString(), row]));
+
+    // 5. Combinar resultados
+    const respuesta = metricasOrdenadas.map(m => {
+      const detalle = detallesMap.get(m.cancion_id);
+      return {
+        title: detalle?.title || 'Título no encontrado',
+        author: detalle?.author || 'Autor no encontrado',
+        conteo: m.conteo
+      };
+    });
+
+    res.json(respuesta);
   } catch (error) {
     console.error('Error al obtener canciones:', error);
     res.status(500).json({ error: 'Error interno del servidor' });
